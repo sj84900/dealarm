@@ -17,15 +17,27 @@ public class MemberDAOImpl implements MemberDAO {
 
 	private static final String namespace = "kr.co.dong.member.MemberDAO";
 
+	// 중복 체크 - 휴대폰 번호
+    @Override
+    public int phoneCheck(String phone) {
+        return sqlSession.selectOne(namespace + ".phoneCheck", phone);
+    }
+
+    // 중복 체크 - 이메일
+    @Override
+    public int emailCheck(String email) {
+        return sqlSession.selectOne(namespace + ".emailCheck", email);
+    }
+	// 중복 체크 - 아이디
+    @Override
+    public int idCheck(String id) {
+    	return sqlSession.selectOne(namespace + ".idCheck", id);
+    }
+	
 	@Override
 	public void insertMember(MemberDTO member) {
 		sqlSession.insert(namespace + ".insertMember", member);
 
-	}
-
-	@Override
-	public int idCheck(String id) {
-		return sqlSession.selectOne(namespace + ".idCheck", id);
 	}
 
 	@Override
@@ -44,16 +56,21 @@ public class MemberDAOImpl implements MemberDAO {
 	}
 
 	@Override	// 전체회원 리스트
-	public List<MemberDTO> allList() {
-		return sqlSession.selectList(namespace + ".allDTO");
+	public List<MemberDTO> allList(Map<String,Object> params) {
+		return sqlSession.selectList(namespace + ".allDTO", params);
 	}
+
+	@Override	// 페이징용 검색 카운트
+	public int searchMembersCount(Map<String, Object> params) {
+		return sqlSession.selectOne(namespace + ".searchMembersCount",params);
+	}
+
 	@Override	// 검색회원리스트
-	public List<MemberDTO> searchMembers(String searchType, String searchValue) {
-		Map<String, Object> params = new HashMap<>();
-		params.put("searchType", searchType);
-		params.put("searchValue", searchValue);
+//	public List<MemberDTO> searchMembers(String searchType, String searchValue) {	//예전꺼
+	public List<MemberDTO> searchMembers(Map<String, Object> params) {
 		return sqlSession.selectList(namespace + ".searchMembers", params);
 	}
+
 	@Override
 	public int userupdate(MemberDTO update) {
 		return sqlSession.update(namespace + ".userupdate", update);
@@ -66,6 +83,7 @@ public class MemberDAOImpl implements MemberDAO {
 
 	@Override
 	public int updatePassword(MemberDTO member) {
+	    System.out.println("비밀번호 넘어옴");
 		return sqlSession.update(namespace + ".updatePassword", member);
 	}
 
@@ -78,6 +96,23 @@ public class MemberDAOImpl implements MemberDAO {
 	public int deleteUser(String id) {
 		  return sqlSession.update(namespace + ".deleteUser", id);
 	}
+
+	@Override
+	public int deleteadmin(String id) {
+		// TODO Auto-generated method stub
+		return sqlSession.update(namespace + ".deleteadmin", id);
+	}
+
+	@Override
+	public int activeUser(String id) {
+		// TODO Auto-generated method stub
+	  return sqlSession.update(namespace + ".activeUser", id);
+	}
+
+
+
+
+
 
 
 

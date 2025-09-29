@@ -6,17 +6,21 @@
 <head>
 <meta charset="UTF-8">
 <title>회원 정보</title>
+<!-- Bootstrap CSS/JS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-
 	<!-- 회원 정보 수정 폼 -->
 
-	<form action="/userupdate_ok" method="post">
-		<table border="1">
+<div class="container mt-5">
+		    <h1>내 정보 수정</h1>
+	<form action="${pageContext.request.contextPath}/member/userupdate" method="post">
+		<table class="table table-bordered text-center" style="width: 500px; table-layout: fixed;">
+		
 			<tr>
-				<th>이름</th>
-				<td><input type="text" name="name" value="${user.name}"
-					readonly></td>
+				<th style="width: 150px;"class="text-center">이름</th>
+				<td><input type="text" name="name" value="${user.name}"	disabled></td>
 			</tr>
 			<tr>
 				<th>번호</th>
@@ -28,13 +32,22 @@
 			</tr>
 			<tr>
 				<th>나이</th>
-				<td><input type="text" name="birth_date" value="${user.birth_date}" readonly></td>
+				<td><input type="text" name="birth_date" value="${user.birth_date}" disabled></td>
 			</tr>
 
 			<tr>
 				<th>성별</th>
-				<td><input type="text" name="gender" value="${user.gender}"
-					readonly></td>
+				<td>
+				    <c:if test="${user.gender eq 'male'}">
+				        <input type="text" value="남자" disabled>
+				        <input type="hidden" name="gender" value="male">
+				    </c:if>
+				    <c:if test="${user.gender eq 'female'}">
+				        <input type="text" value="여자" disabled>
+				        <input type="hidden" name="gender" value="female">
+				    </c:if>
+				</td>
+
 			</tr>
 			<tr>
 				<th>지역</th>
@@ -56,17 +69,23 @@
 			        </label>
 			    </td>
 			</tr>
-
+	
+				    <div class="mt-3">
 			<tr>
-				<td colspan="2" style="text-align: center;"><input
-					type="hidden" name="id" value="${user.id}"> <input
-					type="submit" value="수정">
+
+				<td colspan="2"><input type="hidden" name="id" value="${user.id}"> 
+				<input type="submit" value="수정">
 					<button type="button" onclick="openPwModal()">비밀번호 변경</button>
-					<button type="button" onclick="openModal()">탈퇴</button></td>
+					<button type="button" onclick="openModal()">탈퇴</button>
+					<button type="button" onclick="location.href='<c:url value="/main"/>'">홈으로</button>
+					</td>
+
+							</div>
 			</tr>
+		
 		</table>
 	</form>
-
+	</div>
 	<br>
 
 	<!-- 탈퇴 모달 -->
@@ -76,7 +95,7 @@
 			<strong>정말로 탈퇴하시겠습니까?</strong> 비밀번호를 입력해주세요.
 		</p>
 
-		<input type="hidden" id="deleteEmpno" value="${user.id}">
+		<input type="hidden" id="deleteid" value="${user.id}">
 		비밀번호: <input type="password" id="deletePw" required><br>
 		<br>
 
@@ -84,7 +103,7 @@
 		<button type="button" id="confirmDelete">탈퇴</button>
 	</div>
 
-	<script>
+<script>
   function openModal() {
     document.getElementById("deleteModal").style.display = "block";
   }
@@ -95,7 +114,7 @@
   }
 
   document.getElementById("confirmDelete").addEventListener("click", function () {
-    const id = document.getElementById("deleteEmpno").value;
+    const id = document.getElementById("deleteid").value;
     const password = document.getElementById("deletePw").value.trim();
 
     if (!password) {
@@ -103,20 +122,18 @@
       return;
     }
 
-    fetch("/user/delete", { //@PostMapping("/user/delete") 생성해야한다요
+    fetch("${pageContext.request.contextPath}/member/delete", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ id, password })
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ id: id, password: password })
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert("회원 탈퇴가 완료되었습니다.");
-        location.href = "/logout";
+        alert(data.message);
+        location.href = "${pageContext.request.contextPath}/member/logout";
       } else {
-        alert(data.message || "비밀번호가 일치하지 않습니다.");
+        alert("비밀번호가 일치하지 않습니다.");
       }
     })
     .catch(error => {
@@ -125,6 +142,7 @@
     });
   });
 </script>
+
 <!-- 비밀번호 변경 모달 -->
 <div id="changePwModal"
      style="display: none; border: 1px solid #000; padding: 10px; background: #eee;">
@@ -168,26 +186,30 @@
       return;
     }
 
-    fetch("/user/change-password", {
+    // JSON → Form 방식으로 변경
+    const formData = new URLSearchParams();
+    formData.append("id", id);
+    formData.append("currentPw", currentPw);
+    formData.append("newPw", newPw);
+
+    fetch("${pageContext.request.contextPath}/member/change-password", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ id, currentPw, newPw })
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData
     })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert("비밀번호가 성공적으로 변경되었습니다.");
-          closePwModal();
-        } else {
-          alert(data.message || "현재 비밀번호가 올바르지 않습니다.");
-        }
-      })
-      .catch(err => {
-        console.error("에러 발생:", err);
-        alert("서버 오류가 발생했습니다.");
-      });
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("비밀번호가 성공적으로 변경되었습니다.");
+        closePwModal();
+      } else {
+        alert("현재 비밀번호가 올바르지 않습니다.");
+      }
+    })
+    .catch(err => {
+      console.error("에러 발생:", err);
+      alert("서버 오류가 발생했습니다.");
+    });
   });
 </script>
 
