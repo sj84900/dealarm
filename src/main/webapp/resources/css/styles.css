@@ -202,17 +202,28 @@ a:hover {
     color: darkred;
 }
 /*============== 배너 + 좌우측 컨테이너=================== */
-
+/* 헤더 기본 설정 */
+header {
+    position: sticky; /* 스크롤 따라 붙도록 */
+    top: 0;           /* 상단에서 고정 */
+    z-index: 1000;    /* 다른 요소 위로 표시 */
+    width: 100%;      /* 화면 너비 전체 */
+    max-width: 1220px; /* 최대 너비 제한 */
+    margin: 0 auto;     /* 중앙 정렬 */
+    height: 250px;
+/*    background-color: #f8f9fa; /* 필요시 배경색 추가 */
+}
 .header-img {
-    width: 550px;       /* 이미지 가로 크기 조절 */
-    height: auto;       /* 세로 비율 유지 */
-    object-fit: contain;
+	
+    width: 550px;       /* 가로 고정 */
+    height: 250px;      /* 세로 고정 */
+    object-fit: cover;  /* 비율 유지하면서 넘치는 부분 잘림 */
     display: block;
 }
 
 .center-container {
     position: absolute;  /* 헤더 기준 절대 위치 */
-    top: 50px;           /* 헤더 상단에서 세로 위치 */
+    top: 0px;           /* 헤더 상단에서 세로 위치 */
     left: 335px;          /* 헤더 좌측에서 가로 위치 */
     display: flex;
     justify-content: flex-start;
@@ -222,10 +233,10 @@ a:hover {
 /* 이미지 왼쪽 컨테이너 */
 .left-container {
     position: absolute;
-    top: 50px;                            /* 이미지와 세로 위치 맞춤 */
+    top: 00px;                            /* 이미지와 세로 위치 맞춤 */
     left: 0px;                            /* 이미지 왼쪽 기준 */
     width: 300px;
-    height: 300px;
+    height: 250px;
     display: flex;
     align-items: center;
     border: 1px solid #999999;
@@ -237,10 +248,10 @@ a:hover {
 /* 이미지 오른쪽 컨테이너 */
 .right-container {
     position: absolute;
-    top: 50px;                            /* 이미지와 세로 위치 맞춤 */
+    top: 00px;                            /* 이미지와 세로 위치 맞춤 */
     left: 925px;                          /* 이미지 left + 이미지 width + 여유 공간 */
     width: 300px;
-    height: 300px;
+    height: 790px;
     display: flex;
     align-items: center;
     border: 1px solid #999999;
@@ -265,6 +276,19 @@ a:hover {
     object-fit: cover;          /* 비율 유지하며 컨테이너 채움, 상하 잘림 가능 */
     display: block;
 }
+
+/* 상위 래퍼로 가로 제한 + 위치 조정 */
+.section-wrapper {
+    max-width: 900px;       /* 최대 가로 너비 */
+    margin-left: auto;        /* 기본 중앙 정렬 */
+    margin-right: auto;
+    padding: 0 15px;          /* 내부 여백 */
+    /* 좌우 위치를 수동으로 조정하고 싶으면 아래처럼 바꿔주세요 */
+    /* margin-left: 50px; margin-right: auto; */
+    /* margin-left: auto; margin-right: 50px; */
+}
+
+
 /* 회원가입 스타일 */
 .toast {
     position: fixed;
@@ -288,6 +312,10 @@ a:hover {
 }
 body {
   margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* 변경 */
   font-family: var(--bs-body-font-family);
   font-size: var(--bs-body-font-size);
   font-weight: var(--bs-body-font-weight);
@@ -297,6 +325,38 @@ body {
   background-color: var(--bs-body-bg);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+
+
+/* 카드 스타일 */
+.deal-card {
+	width: 100%;   /* 부모 폭 꽉 차도록 */
+    background: #f9f9f9; /* 시각화 */
+    display: flex;
+    border: 1px solid #ccc;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+}
+.deal-card div:first-child {
+    flex: 0 0 120px;
+    margin-right: 10px;
+    text-align: center;
+}
+.deal-card div:first-child img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+.deal-card div:last-child {
+    flex: 1;
+    font-size: 12px;
+    line-height: 1.2;
+}
+.deal-card p {
+    margin: 0;
+    padding: 0;
 }
 
 hr {

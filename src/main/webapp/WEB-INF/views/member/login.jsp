@@ -26,9 +26,9 @@
         <%@ include file="/WEB-INF/views/include/left_nav.jsp"%>
         <div class="flex-grow-1">
             <%@ include file="/WEB-INF/views/include/banner.jsp"%>
-            <!-- =================[로그인페이지]============ -->
-   			
-   			<div class="container" style="max-width: 400px; magin-top: 80px;">
+            <!-- =================[로그인]============ -->
+   
+            <div class="container" style="max-width: 400px; magin-top: 80px;">
    				<div class="card shadow-sm">
    					<div class="card-body">
  			            <h2 class="card-title text-center mb-4">로그인</h2>
@@ -51,21 +51,9 @@
    				</div>
    			</div>         
    
-   
-		        
-		        
-            
-		    <!-- 로그인 실패 메시지 표시 -->
-		    <c:if test="${not empty errorMsg}">
-		        <p style="color:red;">${errorMsg}</p>
-		    </c:if>
-		
-		    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="<c:url value='/member/join'/>">회원가입</a>
-		       <a href="<c:url value='/main'/>">홈으로</a></p>
-         
             
             
-            <!-- =================[로그인페이지 end]============ -->
+            <!-- ============================= -->
             <%@ include file="/WEB-INF/views/include/footer.jsp"%>
         </div>
     </div>
