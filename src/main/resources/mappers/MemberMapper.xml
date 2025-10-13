@@ -39,13 +39,13 @@
 	
 	<!-- 회원 업데이트 -->
 	<update id="userupdate" parameterType="kr.co.dong.member.MemberDTO">
-		update users set phone = ${phone}, email = #{email}, notification = #{notification}, region = #{region}
+		update users set phone = #{phone}, email = #{email}, notification = #{notification}, region = #{region}
 		where id = #{id}
 	</update>
 	
 	<!-- 관리자 회원 업데이트 -->
 	<update id="adminupdate" parameterType="kr.co.dong.member.MemberDTO">
-		update users set name = #{name}, phone = ${phone}, email = #{email}, notification = #{notification}, 
+		update users set name = #{name}, phone = #{phone}, email = #{email}, notification = #{notification}, 
 		birth_date = #{birth_date}, gender = #{gender}, region = #{region}, role = #{role}, is_active = #{is_active}
 		where id = #{id}
 		
@@ -62,6 +62,14 @@
 		is_active, created_at
 		FROM users
 		WHERE id = #{id}
+	</select>
+	
+	<!-- 네이버를 위한 내정보 불러오기 -->
+	<select id="myDTONaver" parameterType="String"  resultType="kr.co.dong.member.MemberDTO">
+		select id, password, name, phone, email, birth_date, gender, notification, region, role,
+		is_active, created_at
+		FROM users
+		WHERE phone = #{phone}
 	</select>
 	
 	<!-- 전체회원 수 -->

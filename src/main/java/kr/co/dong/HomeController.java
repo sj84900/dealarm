@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -98,6 +99,12 @@ public class HomeController {
 			logger.info(uid);
 			List<DealMatchDTO> dealList = dealMatchDAO.dealMatch(uid, offset, limit);
 			model.addAttribute("list", dealList);
+		}else {
+			Map<String, Object> params = new HashMap<>();
+			params.put("limit", 10);
+			List<DealMatchDAO> dealList = dealMatchDAO.newDeal(params);
+			model.addAttribute("list", dealList);
+					
 		}
 
 		List<Map<String, String>> latestNews = new ArrayList<>();
@@ -155,6 +162,33 @@ public class HomeController {
 
 		return "main"; // main.jsp
 	}
+	
+	@GetMapping("/newDeal")
+	public String newDeal(Model model) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("limit", 100);
+		List<DealMatchDAO> dealList = dealMatchDAO.newDeal(params);
+		model.addAttribute("list", dealList);
+		return "newDeal";
+	}
+	
+	@PostMapping("/deleteDeal")
+	@ResponseBody
+	public String deleteDeal(@RequestParam("matchId") Integer matchId, HttpSession session) {
+	    String userId = (String) session.getAttribute("id");
+	    
+	    if(userId == null) {
+	        return "fail"; // 로그인 안 되어 있을 때 처리
+	    }
 
+	    
+	    int result = dealMatchDAO.deleteDeal(matchId, userId);
 
+	    return result > 0 ? "success" : "fail";
+	}
+	
+	
+	
+	
+	
 }
