@@ -1,140 +1,315 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>고객문의 목록</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <style>
-        body {margin:0;padding:0;height:100vh;display:flex;flex-direction:column;}
-        .main-wrapper {flex-grow:1;display:flex;overflow:hidden;}
-        nav.sidebar {width:250px;background:#f8f9fa;border-right:1px solid #ddd;padding:1rem;overflow-y:auto;}
-        main.content {flex-grow:1;padding:2rem;overflow-y:auto;background:#fff;}
-        .table th, .table td {vertical-align: middle;}
-    </style>
+<title>문의 목록</title>
+<link href="${pageContext.request.contextPath}/resources/css/styles.css"
+	rel="stylesheet" />
+<style>
+body {
+	font-family: "Pretendard", sans-serif;
+	background: #f9fafb;
+	margin: 0;
+	padding: 0;
+}
+
+.card {
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	background: #fff;
+	margin-bottom: 16px;
+}
+
+.card-header {
+	padding: 12px 16px;
+	border-bottom: 1px solid #eef0f3;
+	font-weight: 600;
+	background: #f7fafc;
+}
+
+.card-body {
+	padding: 16px;
+}
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.table th, .table td {
+	border: 1px solid #edf2f7;
+	padding: 10px 12px;
+}
+
+.table thead th {
+	background: #f9fafb;
+	font-weight: 600;
+}
+
+.btn {
+	display: inline-block;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	padding: 6px 12px;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #111;
+	font-size: 13px;
+}
+
+.btn:hover {
+	background: #f5f6f8;
+}
+
+.btn-primary {
+	background: #2563eb;
+	border-color: #2563eb;
+	color: #fff;
+}
+
+.btn-primary:hover {
+	background: #1d4ed8;
+}
+
+.btn-danger {
+	background: #e11d48;
+	border-color: #e11d48;
+	color: #fff;
+}
+
+.btn-danger:hover {
+	background: #be123c;
+}
+
+.pill {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 12px;
+	border: 1px solid #e1e4e8;
+	background: #f8fafc;
+}
+
+.pill.success {
+	color: #0a7;
+	border-color: #bff0de;
+	background: #eafff6;
+}
+
+.pill.warn {
+	color: #b7791f;
+	border-color: #fbd38d;
+	background: #fffaf0;
+}
+
+.pill.muted {
+	color: #6b7280;
+}
+
+.lock {
+	margin-right: 6px;
+	color: #777;
+}
+
+.category-select {
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	padding: 4px 6px;
+}
+
+.action-btns a {
+	margin-right: 6px;
+}
+</style>
 </head>
-<body>
-    <!-- 상단 네비게이션 -->
-    <%@ include file="/WEB-INF/views/include/top_nav.jsp" %>
 
-    <div class="main-wrapper">
-        <!-- 좌측 네비게이션 -->
-        <%@ include file="/WEB-INF/views/include/left_nav.jsp" %>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
 
-        <!-- 고객문의 본문 -->
-        <main class="content">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">고객문의 목록</h4>
-                <div>
-                    <!-- 검색 -->
-                    <form action="${pageContext.request.contextPath}/inquiry/list" method="get" class="d-inline">
-                        <input type="text" name="keyword" value="${keyword}" placeholder="검색어 입력" 
-                               class="form-control d-inline" style="width:200px;display:inline-block;">
-                        <button type="submit" class="btn btn-outline-primary btn-sm">검색</button>
-                    </form>
+	<%@ include file="/WEB-INF/views/include/top_nav.jsp"%>
 
-                    <!-- 카테고리 필터 -->
-                    <form action="${pageContext.request.contextPath}/inquiry/list" method="get" class="d-inline ms-2">
-                        <select name="category" class="form-select form-select-sm d-inline" style="width:150px;display:inline-block;">
-                            <option value="">전체</option>
-                            <option value="일반문의" ${param.category eq '일반문의' ? 'selected' : ''}>일반문의</option>
-                            <option value="결제문의" ${param.category eq '결제문의' ? 'selected' : ''}>결제문의</option>
-                            <option value="계정문의" ${param.category eq '계정문의' ? 'selected' : ''}>계정문의</option>
-                            <option value="기타" ${param.category eq '기타' ? 'selected' : ''}>기타</option>
-                        </select>
-                        <button type="submit" class="btn btn-outline-secondary btn-sm">조회</button>
-                    </form>
+	<div class="d-flex" style="flex: 1 0 auto;">
+		<%@ include file="/WEB-INF/views/include/left_nav.jsp"%>
 
-                    <!-- 문의 등록 -->
-                    <a href="${pageContext.request.contextPath}/inquiry/write" class="btn btn-primary btn-sm">문의하기</a>
-                </div>
-            </div>
+		<div class="flex-grow-1">
+			<div class="content-wrapper">
 
-            <!-- 📋 고객문의 테이블 -->
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width:60px;">번호</th>
-                        <th>제목</th>
-                        <th style="width:120px;">작성자</th>
-                        <th style="width:150px;">카테고리</th>
-                        <th style="width:150px;">작성일</th>
-                        <th style="width:80px;">조회수</th>
-                        <th style="width:100px;">상태</th>
-                        <th style="width:80px;">공개</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:choose>
-                        <c:when test="${not empty inquiryList}">
-                            <c:forEach var="inq" items="${inquiryList}">
-                                <tr>
-                                    <td>${inq.id}</td>
-                                    <td>
-                                        <a href="${pageContext.request.contextPath}/inquiry/detail?id=${inq.id}">
-                                            ${inq.title}
-                                        </a>
-                                        <c:if test="${inq.secret}">
-                                            <span class="text-danger ms-1">🔒</span>
-                                        </c:if>
-                                    </td>
-                                    <td>${inq.writer}</td>
-                                    <td>${inq.category}</td>
-                                    <td><fmt:formatDate value="${inq.regdate}" pattern="yyyy-MM-dd HH:mm"/></td>
-                                    <td>${inq.hit}</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${inq.status eq '답변완료'}">
-                                                <span class="badge bg-success">답변완료</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge bg-secondary">대기중</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <c:if test="${inq.secret}">비공개</c:if>
-                                        <c:if test="${!inq.secret}">공개</c:if>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </c:when>
-                        <c:otherwise>
-                            <tr>
-                                <td colspan="8" class="text-center">등록된 문의가 없습니다.</td>
-                            </tr>
-                        </c:otherwise>
-                    </c:choose>
-                </tbody>
-            </table>
+				<!-- 📌 제목 -->
+				<section class="content-header">
+					<h2 class="fw-bold mb-1">문의 게시판</h2>
+					<ol class="breadcrumb">
+						<li class="active">문의 목록</li>
+					</ol>
+				</section>
 
-            <!-- 페이지네이션 -->
-            <c:if test="${totalPages > 1}">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        <c:if test="${page > 1}">
-                            <li class="page-item">
-                                <a class="page-link" href="?page=${page-1}&keyword=${keyword}&category=${param.category}">이전</a>
-                            </li>
-                        </c:if>
+				<!-- 🔍 검색 및 글쓰기 -->
+				<section class="content">
+					<div class="card">
+						<div class="card-header"
+							style="display: flex; justify-content: space-between; align-items: center;">
+							<span>검색 및 필터</span> <a
+								href="${pageContext.request.contextPath}/inquiry/write"
+								class="btn btn-primary btn-sm">글쓰기</a>
+						</div>
+						<div class="card-body">
+							<form method="get"
+								action="${pageContext.request.contextPath}/inquiry/list"
+								style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+								<select name="category" class="category-select">
+									<option value="">전체</option>
+									<c:forEach var="cat" items="${categories}">
+										<option value="${cat}"
+											<c:if test="${cat == selectedCategory}">selected</c:if>>${cat}</option>
+									</c:forEach>
+								</select> <input type="text" name="keyword" class="form-control"
+									style="min-width: 200px;" placeholder="제목 / 작성자 검색"
+									value="${param.keyword}">
+								<button class="btn" type="submit">검색</button>
+							</form>
+						</div>
+					</div>
 
-                        <c:forEach var="i" begin="1" end="${totalPages}">
-                            <li class="page-item ${i == page ? 'active' : ''}">
-                                <a class="page-link" href="?page=${i}&keyword=${keyword}&category=${param.category}">${i}</a>
-                            </li>
-                        </c:forEach>
+					<!-- 📋 목록 테이블 -->
+					<div class="card">
+						<div class="card-header">문의 목록</div>
+						<div class="card-body">
+							<div class="table-responsive">
+								<table class="table text-center align-middle">
+									<thead>
+										<tr>
+											<th style="width: 5%">번호</th>
+											<th style="width: 10%">카테고리</th>
+											<th>제목</th>
+											<th style="width: 12%">작성자</th>
+											<th style="width: 15%">작성일</th>
+											<th style="width: 8%">조회</th>
+											<th style="width: 10%">상태</th>
+											<th style="width: 8%">비밀</th>
+											<th style="width: 15%">관리</th>
+										</tr>
+									</thead>
+									<tbody>
+										<c:choose>
+											<c:when test="${not empty list}">
+												<c:forEach var="dto" items="${list}">
+													<c:set var="isOwner"
+														value="${currentLoginId != null and currentLoginId == dto.writer}" />
+													<c:set var="canView"
+														value="${not dto.secret or isAdmin or isOwner}" />
 
-                        <c:if test="${page < totalPages}">
-                            <li class="page-item">
-                                <a class="page-link" href="?page=${page+1}&keyword=${keyword}&category=${param.category}">다음</a>
-                            </li>
-                        </c:if>
-                    </ul>
-                </nav>
-            </c:if>
-        </main>
-    </div>
+													<tr>
+														<td>${dto.id}</td>
+														<td>${dto.category}</td>
+
+														<!-- 제목 -->
+														<td class="text-start"><c:choose>
+																<c:when test="${canView}">
+																	<a
+																		href="${pageContext.request.contextPath}/inquiry/detail?id=${dto.id}"
+																		style="text-decoration: none; color: #222; font-weight: 600;">
+																		<c:if test="${dto.secret}">
+																			<span class="lock">🔒</span>
+																		</c:if> <c:out value="${dto.title}" />
+																	</a>
+																	<c:if test="${dto.status eq '답변완료'}">
+																		<span class="pill success">답변완료</span>
+																	</c:if>
+																</c:when>
+																<c:otherwise>
+																	<span class="muted"><span class="lock">🔒</span>
+																		비밀글</span>
+																</c:otherwise>
+															</c:choose></td>
+
+														<td><c:out value="${dto.writer}" /></td>
+														<td><fmt:formatDate value="${dto.regdate}"
+																pattern="yyyy-MM-dd HH:mm" /></td>
+														<td>${dto.hit}</td>
+
+														<!-- 상태 -->
+														<td><c:choose>
+																<c:when test="${dto.status eq '답변완료'}">
+																	<span class="pill success">완료</span>
+																</c:when>
+																<c:otherwise>
+																	<span class="pill muted">대기</span>
+																</c:otherwise>
+															</c:choose></td>
+
+														<!-- 비밀글 여부 -->
+														<td><c:choose>
+																<c:when test="${dto.secret}">
+																	<span class="pill warn">Y</span>
+																</c:when>
+																<c:otherwise>
+																	<span class="pill muted">N</span>
+																</c:otherwise>
+															</c:choose></td>
+
+														<!-- ✏️ 수정 / 삭제 -->
+														<td class="action-btns"><c:choose>
+																<c:when test="${isAdmin}">
+																	<!-- ✅ 관리자: 수정 + 삭제 -->
+																	<a
+																		href="${pageContext.request.contextPath}/inquiry/edit?id=${dto.id}"
+																		class="btn btn-sm">수정</a>
+																	<a
+																		href="${pageContext.request.contextPath}/inquiry/delete?id=${dto.id}"
+																		class="btn btn-danger btn-sm"
+																		onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+																</c:when>
+																<c:when test="${currentLoginId eq dto.writer}">
+																	<!-- ✅ 일반회원(작성자 본인): 수정만 -->
+																	<a
+																		href="${pageContext.request.contextPath}/inquiry/edit?id=${dto.id}"
+																		class="btn btn-sm">수정</a>
+																</c:when>
+																<c:otherwise>
+																	<!-- ✅ 그 외 사용자는 권한 없음 -->
+																	<span class="text-muted small">권한없음</span>
+																</c:otherwise>
+															</c:choose></td>
+
+													</tr>
+												</c:forEach>
+											</c:when>
+											<c:otherwise>
+												<tr>
+													<td colspan="9" style="padding: 24px;">등록된 문의가 없습니다.</td>
+												</tr>
+											</c:otherwise>
+										</c:choose>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<!-- 👤 사용자 상태 -->
+					<div class="card">
+						<div class="card-body"
+							style="display: flex; justify-content: space-between; align-items: center;">
+							<div>
+								<b>현재 사용자:</b> <span class="text-primary">${currentLoginId}</span>
+								| <b>관리자:</b> <span class="text-danger"> <c:choose>
+										<c:when test="${isAdmin}">ON</c:when>
+										<c:otherwise>OFF</c:otherwise>
+									</c:choose>
+								</span>
+							</div>
+						</div>
+					</div>
+
+				</section>
+			</div>
+
+			<%@ include file="/WEB-INF/views/include/footer.jsp"%>
+		</div>
+	</div>
+
 </body>
 </html>

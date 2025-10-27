@@ -4,103 +4,140 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>문의 상세</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <style>
-        body {margin:0;padding:0;height:100vh;display:flex;flex-direction:column;}
-        .main-wrapper {flex-grow:1;display:flex;overflow:hidden;}
-        nav.sidebar {width:250px;background:#f8f9fa;border-right:1px solid #ddd;padding:1rem;overflow-y:auto;}
-        main.content {flex-grow:1;padding:2rem;overflow-y:auto;background:#fff;}
-        .label {font-weight: bold; width: 120px; display: inline-block;}
-    </style>
+  <title>문의 상세</title>
+  <link href="${pageContext.request.contextPath}/resources/css/styles.css" rel="stylesheet" />
+  <style>
+    body { font-family:"Pretendard",sans-serif; background:#f9fafb; margin:0; padding:0; }
+    .card { border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+    .card + .card { margin-top:16px; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #eef0f3; font-weight:600; background:#f7fafc; }
+    .card-body { padding:16px; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #e1e4e8; background:#f8fafc; }
+    .pill.success { color:#0a7; border-color:#bff0de; background:#eafff6; }
+    .pill.warn { color:#b7791f; border-color:#fbd38d; background:#fffaf0; }
+    .pill.admin { background:#e0ecff; color:#1d4ed8; border-color:#cbd5e1; font-weight:600; }
+    .muted { color:#6b7280; }
+    .btn { display:inline-block; border:1px solid #d1d5db; background:#fff; padding:6px 12px; border-radius:8px; text-decoration:none; color:#111; cursor:pointer; }
+    .btn:hover { background:#f5f6f8; }
+    .btn-primary { background:#2563eb; border-color:#2563eb; color:#fff; }
+    .btn-primary:hover { background:#1d4ed8; }
+    .btn-danger { background:#e11d48; color:#fff; }
+    .btn-danger:hover { background:#be123c; }
+    .comment { padding:10px 12px; border-bottom:1px solid #eee; border-radius:8px; margin-bottom:10px; }
+    .comment strong { color:#111; }
+    .comment small { color:#777; font-size:12px; }
+    .comment.admin { background:#f0f7ff; border-left:3px solid #2563eb; }
+    .comment.user { background:#fff; }
+    .no-comment { text-align:center; color:#777; padding:16px 0; }
+    textarea { width:100%; border:1px solid #ddd; border-radius:6px; padding:8px; resize:none; }
+  </style>
 </head>
+
 <body>
-    <%@ include file="/WEB-INF/views/include/top_nav.jsp"%>
+  <%@ include file="/WEB-INF/views/include/top_nav.jsp"%>
+  <div class="d-flex" style="flex:1 0 auto;">
+    <%@ include file="/WEB-INF/views/include/left_nav.jsp"%>
+    <div class="flex-grow-1">
+      <div class="content-wrapper">
 
-    <div class="main-wrapper">
-        <%@ include file="/WEB-INF/views/include/left_nav.jsp"%>
+        <!-- 제목 -->
+        <section class="content-header">
+          <h2 class="fw-bold mb-1">문의 상세</h2>
+          <ol class="breadcrumb">
+            <li><a href="${pageContext.request.contextPath}/inquiry/list">문의 목록</a></li>
+          </ol>
+        </section>
 
-        <!-- 문의 상세 본문 -->
-        <main class="content">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">문의 상세</h4>
-                <div>
-                    <a href="${pageContext.request.contextPath}/inquiry/list" class="btn btn-secondary btn-sm">
-                        <i class="bi bi-list"></i> 목록
-                    </a>
-                    <!-- 게시자 본인 또는 관리자만 수정/삭제 버튼 노출 -->
-                    <c:if test="${sessionScope.name eq dto.writer || sessionScope.role eq 'admin'}">
-                        <a href="${pageContext.request.contextPath}/inquiry/update?id=${dto.id}" class="btn btn-warning btn-sm">
-                            <i class="bi bi-pencil"></i> 수정
-                        </a>
-                        <a href="${pageContext.request.contextPath}/inquiry/deleteConfirm?id=${dto.id}" class="btn btn-danger btn-sm">
-                            <i class="bi bi-trash"></i> 삭제
-                        </a>
+        <section class="content">
+
+          <!-- 기본 정보 -->
+          <div class="card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <c:if test="${inquiry.secret}"><span>🔒</span></c:if>
+                <c:out value="${inquiry.title}"/>
+              </div>
+              <div>
+                <a href="${pageContext.request.contextPath}/inquiry/list" class="btn btn-sm">← 목록</a>
+                <c:if test="${isAdmin or (currentLoginId eq inquiry.writer)}">
+                  <a href="${pageContext.request.contextPath}/inquiry/edit?id=${inquiry.id}" class="btn btn-primary btn-sm">수정</a>
+                  <a href="${pageContext.request.contextPath}/inquiry/delete?id=${inquiry.id}" class="btn btn-danger btn-sm"
+                     onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+                </c:if>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <p><b>작성자:</b> ${inquiry.writer}</p>
+              <p><b>카테고리:</b> <span class="pill">${inquiry.category}</span></p>
+              <p><b>작성일:</b> <fmt:formatDate value="${inquiry.regdate}" pattern="yyyy-MM-dd HH:mm"/></p>
+              <p><b>조회수:</b> ${inquiry.hit}</p>
+              <p><b>상태:</b>
+                <c:choose>
+                  <c:when test="${inquiry.status eq '답변완료'}"><span class="pill success">답변완료</span></c:when>
+                  <c:otherwise><span class="pill warn">대기</span></c:otherwise>
+                </c:choose>
+              </p>
+            </div>
+          </div>
+
+          <!-- 본문 -->
+          <div class="card">
+            <div class="card-header">내용</div>
+            <div class="card-body">
+              <pre style="white-space:pre-wrap; font-size:14px;"><c:out value="${inquiry.content}"/></pre>
+            </div>
+          </div>
+
+          <!-- 댓글 -->
+          <div class="card">
+            <div class="card-header">댓글</div>
+            <div class="card-body">
+              <c:if test="${not empty commentList}">
+                <c:forEach var="c" items="${commentList}">
+                  <div class="comment <c:choose><c:when test='${c.writer eq "관리자"}'>admin</c:when><c:otherwise>user</c:otherwise></c:choose>">
+                    <strong>${c.writer}
+                      <c:if test="${c.writer eq '관리자'}">
+                        <span class="pill admin" style="margin-left:6px;">관리자</span>
+                      </c:if>
+                    </strong>
+                    <small><fmt:formatDate value="${c.regdate}" pattern="yyyy-MM-dd HH:mm"/></small>
+                    <p style="margin:6px 0;">${c.content}</p>
+
+                    <c:if test="${isAdmin or (currentLoginId eq c.writer)}">
+                      <a href="${pageContext.request.contextPath}/comment/delete?id=${c.id}&inquiryId=${inquiry.id}" 
+                         class="btn btn-danger btn-sm"
+                         onclick="return confirm('댓글을 삭제하시겠습니까?');">삭제</a>
                     </c:if>
-                </div>
+                  </div>
+                </c:forEach>
+              </c:if>
+
+              <c:if test="${empty commentList}">
+                <div class="no-comment">등록된 댓글이 없습니다.</div>
+              </c:if>
+
+              <!-- 댓글 작성 -->
+              <c:if test="${isAdmin or (currentLoginId eq inquiry.writer)}">
+                <form action="${pageContext.request.contextPath}/comment/insert" method="post" style="margin-top:16px;">
+                  <input type="hidden" name="inquiryId" value="${inquiry.id}" />
+                  <textarea name="content" rows="3" placeholder="댓글을 입력하세요..." required></textarea>
+                  <div style="text-align:right; margin-top:8px;">
+                    <button type="submit" class="btn btn-primary">댓글 등록</button>
+                  </div>
+                </form>
+              </c:if>
+
+              <c:if test="${not (isAdmin or (currentLoginId eq inquiry.writer))}">
+                <p class="muted" style="font-size:14px;">댓글은 관리자 또는 작성자만 작성할 수 있습니다.</p>
+              </c:if>
             </div>
+          </div>
 
-            <!-- 상세 내용 -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <p><span class="label">제목</span> ${dto.title}</p>
-                    <p><span class="label">작성자</span> ${dto.writer}</p>
-                    <p><span class="label">카테고리</span> ${dto.category}</p>
-                    <p><span class="label">작성일</span> 
-                        <fmt:formatDate value="${dto.regdate}" pattern="yyyy-MM-dd HH:mm"/>
-                    </p>
-                    <p><span class="label">조회수</span> ${dto.hit}</p>
-                    <p><span class="label">공개여부</span> 
-                        <c:if test="${dto.secret}">비공개</c:if>
-                        <c:if test="${!dto.secret}">공개</c:if>
-                    </p>
-                    <p><span class="label">상태</span> 
-                        <c:choose>
-                            <c:when test="${dto.status eq '답변완료'}">
-                                <span class="badge bg-success">답변완료</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="badge bg-secondary">대기중</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </p>
-                    <hr>
-                    <p><span class="label">내용</span></p>
-                    <div class="border rounded p-3 mb-3">${dto.content}</div>
-                </div>
-            </div>
-
-            <!-- 답변 영역 -->
-            <c:if test="${not empty dto.answer}">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <strong>관리자 답변</strong> 
-                        <small class="text-muted">
-                            (<fmt:formatDate value="${dto.answer_date}" pattern="yyyy-MM-dd HH:mm"/>)
-                        </small>
-                    </div>
-                    <div class="card-body">
-                        ${dto.answer}
-                    </div>
-                </div>
-            </c:if>
-
-            <!-- 답변 등록 폼 (게시자 또는 관리자만 노출, 답변 없을 때만) -->
-            <c:if test="${empty dto.answer && (sessionScope.name eq dto.writer || sessionScope.role eq 'admin')}">
-                <div class="mt-4">
-                    <form action="${pageContext.request.contextPath}/inquiry/answer" method="post">
-                        <input type="hidden" name="id" value="${dto.id}">
-                        <div class="mb-3">
-                            <label class="form-label">답변 작성</label>
-                            <textarea name="answer" class="form-control" rows="4" placeholder="답변을 입력하세요"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">답변 등록</button>
-                    </form>
-                </div>
-            </c:if>
-        </main>
+        </section>
+      </div>
+      <%@ include file="/WEB-INF/views/include/footer.jsp"%>
     </div>
+  </div>
 </body>
 </html>

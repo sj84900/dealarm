@@ -2,27 +2,49 @@ package kr.co.dong.inquiry;
 
 import java.sql.Timestamp;
 
+/**
+ * InquiryDTO
+ * 문의 게시판 데이터 전송 객체
+ * - 일반 사용자 및 관리자 공용
+ */
 public class InquiryDTO {
-    // 🔹 기본 문의 관련 필드
-    private int id;                 // 문의 번호 (PK)
+
+    // 🔹 기본 필드
+    private int id;                 // 글 번호 (PK)
     private String title;           // 제목
-    private String writer;          // 작성자
+    private String writer;          // 작성자 (또는 관리자)
     private String content;         // 내용
     private String category;        // 카테고리 (일반문의, 결제문의 등)
     private boolean secret;         // 비밀글 여부
-    private Timestamp regdate;      // 작성일
+    private Timestamp regdate;      // 등록일
     private int hit;                // 조회수
-    private String answer;          // 답변 내용
+
+    // 🔹 답변 및 상태 관련 필드
+    private String answer;          // 관리자 답변
     private Timestamp answer_date;  // 답변 등록일
     private String status;          // 상태 (대기, 답변완료 등)
 
-    // 🔹 첨부파일 관련 필드
-    private int inquiryId;          // 문의 글 번호 (FK 역할, inquiry.id 참조)
-    private String filename;        // 원본 파일명
-    private String filepath;        // 서버 저장 경로
-    private String uploadDate;      // 업로드 날짜
+    // 🔹 기본 생성자
+    public InquiryDTO() {}
 
-    // ---------- Getter & Setter ----------
+    // 🔹 전체 생성자
+    public InquiryDTO(int id, String title, String writer, String content, String category,
+                      boolean secret, Timestamp regdate, int hit,
+                      String answer, Timestamp answer_date, String status) {
+        this.id = id;
+        this.title = title;
+        this.writer = writer;
+        this.content = content;
+        this.category = category;
+        this.secret = secret;
+        this.regdate = regdate;
+        this.hit = hit;
+        this.answer = answer;
+        this.answer_date = answer_date;
+        this.status = status;
+    }
+
+    // 🔹 Getter & Setter
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -56,15 +78,18 @@ public class InquiryDTO {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public int getInquiryId() { return inquiryId; }
-    public void setInquiryId(int inquiryId) { this.inquiryId = inquiryId; }
-
-    public String getFilename() { return filename; }
-    public void setFilename(String filename) { this.filename = filename; }
-
-    public String getFilepath() { return filepath; }
-    public void setFilepath(String filepath) { this.filepath = filepath; }
-
-    public String getUploadDate() { return uploadDate; }
-    public void setUploadDate(String uploadDate) { this.uploadDate = uploadDate; }
+    // 🔹 디버깅용 toString
+    @Override
+    public String toString() {
+        return "InquiryDTO{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", writer='" + writer + '\'' +
+                ", category='" + category + '\'' +
+                ", secret=" + secret +
+                ", regdate=" + regdate +
+                ", hit=" + hit +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

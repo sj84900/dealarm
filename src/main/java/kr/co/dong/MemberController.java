@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.scribejava.core.model.OAuth2AccessToken;
+import com.mysql.cj.Session;
 
 import kr.co.dong.member.MemberDTO;
 import kr.co.dong.member.MemberService;
@@ -42,6 +44,9 @@ public class MemberController {
 	/* NaverLoginVO */
 	private NaverLoginVO naverLoginVO;
 	private String apiResult = null;
+	
+	//비밀번호 암호화 객체
+	BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 	
 	@Autowired
 	private void setNaverLoginBO(NaverLoginVO naverLoginVO) {
@@ -99,6 +104,11 @@ public class MemberController {
 			model.addAttribute("member", member); // 중복 항목을 제외한 값들을 유지
 			return "member/join"; // 다시 회원가입 폼으로 돌아가게 함
 		}
+		// 회원가입 처리전 비밀번호 암호화 실행 userPassword -> encodedPassword
+		   String userPassword = member.getPassword(); //user가 입력한 password
+		   String encodedPassword = encoder.encode(userPassword); //암호화 된 password
+
+		   member.setPassword(encodedPassword); //암호화된 비번을 setting
 
 		// 중복되지 않으면, 회원가입 처리
 		memberService.register(member);
@@ -114,10 +124,18 @@ public class MemberController {
 	// 로그인 처리
 	@PostMapping("/login")
 	public String login(MemberDTO member, HttpSession session, Model model) {
-
+		// 사용자 입력 password 저장
+		String userPassword = member.getPassword(); //user가 입력한 비번
+		System.out.println("user password : "+ userPassword); //for test
+		
 		MemberDTO loginUser = memberService.login(member);
+		//비밀번호 일치여부 확인
+		boolean passPassword = false;
+		if (loginUser != null){
+		passPassword = encoder.matches(userPassword, loginUser.getPassword());
+		}
 
-		if (loginUser != null) {
+		if (loginUser != null && passPassword) {  //id, password가 모두 일치
 			session.setAttribute("id", loginUser.getId());
 			session.setAttribute("role", loginUser.getRole());
 			session.setAttribute("name", loginUser.getName());
@@ -223,79 +241,94 @@ public class MemberController {
 
       return "member/userupdate";
    }
+
 // 관리자 회원관리 전체 리스트
    @RequestMapping("/members")
    public String members(@RequestParam(value="currentPage", required=false, defaultValue="1") int currentPage,
-                    Model model){
-      
-      int limit = 15;   // 페이지당 목록 수
-      int offset = (currentPage -1) * limit;
-      
-      // 검색조건 Map int형 따로 분리 object에서 안들어감
-      Map<String,Object> params = new HashMap<>();
-      params.put("limit", Integer.valueOf(limit));
-      params.put("offset", Integer.valueOf(offset));
-      
-      
-      int totalCount = memberService.memberCount(); // 총 회원 수
-      List<MemberDTO> list = memberService.allList(params); // 전체회원 목록
-      int searchMembersCount = memberService.searchMembersCount(params); // 검색 회원 수
-      
-      int totalPages = totalCount / limit;   // 정수 나눗셈 = 자동 소수점 버림
-       if(totalCount % limit != 0) {         // 나머지가 있으면 한 페이지 추가
-           totalPages += 1;
-       }
-       
-      if(currentPage > totalPages) currentPage = totalPages;
-      if(currentPage < 1) currentPage = 1; 
-      
+                    Model model, HttpSession session){
+	   String role = (String) session.getAttribute("role");
+      if("ADMIN".equals(role)) {
+    	  int limit = 15;   // 페이지당 목록 수
+          int offset = (currentPage -1) * limit;
+          
+          // 검색조건 Map int형 따로 분리 object에서 안들어감
+          Map<String,Object> params = new HashMap<>();
+          params.put("limit", Integer.valueOf(limit));
+          params.put("offset", Integer.valueOf(offset));
+          
+          
+          int totalCount = memberService.memberCount(); // 총 회원 수
+          List<MemberDTO> list = memberService.allList(params); // 전체회원 목록
+          int searchMembersCount = memberService.searchMembersCount(params); // 검색 회원 수
+          
+          int totalPages = totalCount / limit;   // 정수 나눗셈 = 자동 소수점 버림
+           if(totalCount % limit != 0) {         // 나머지가 있으면 한 페이지 추가
+               totalPages += 1;
+           }
+           
+          if(currentPage > totalPages) currentPage = totalPages;
+          if(currentPage < 1) currentPage = 1; 
+          
 
-      model.addAttribute("list", list);
-      model.addAttribute("totalCount", totalCount);
-      model.addAttribute("searchCount", totalCount);   // 검색카운트
-      model.addAttribute("currentPage", currentPage);
-      model.addAttribute("totalPages", totalPages);
-      model.addAttribute("limit", limit);
-      
-      return "admin/members";
+          model.addAttribute("list", list);
+          model.addAttribute("totalCount", totalCount);
+          model.addAttribute("searchCount", totalCount);   // 검색카운트
+          model.addAttribute("currentPage", currentPage);
+          model.addAttribute("totalPages", totalPages);
+          model.addAttribute("limit", limit);
+          
+          return "admin/members";
+    	  
+      }else
+   		   session.invalidate(); // 세션 초기화
+	   return "error/405?msg=invalidAccess";
+     
    }
 
    // 관리자 회원검색 리스트
    @RequestMapping("/members_search")
    public String searchMembers(@RequestParam Map<String, Object> params, // 모든 파라미터를 한
                         @RequestParam(value="currentPage", required=false, defaultValue="1") int currentPage,
-                        Model model) {
-      
-      //2. 검색 필터조건 Map 에 넣어 서비스로 보내기
-      int limit = 15;   // 페이지당 목록 수
-      int offset = (currentPage -1) * limit; 
-      
-      // 검색조건 Map int형 따로 분리 object에서 안들어감
-      params.put("limit", Integer.valueOf(limit));
-      params.put("offset", Integer.valueOf(offset));
-      
-      
-//      List<MemberDTO> list= memberService.searchMembers(searchType, searchValue); // 이전꺼
-      List<MemberDTO> list= memberService.searchMembers(params);   //검색 회원 목록
+                        Model model, HttpSession session) {
+	   String role = (String) session.getAttribute("role");
+	   if("ADMIN".equals(role)) {
+		   //2. 검색 필터조건 Map 에 넣어 서비스로 보내기
+		      int limit = 15;   // 페이지당 목록 수
+		      int offset = (currentPage -1) * limit; 
+		      
+		      // 검색조건 Map int형 따로 분리 object에서 안들어감
+		      params.put("limit", Integer.valueOf(limit));
+		      params.put("offset", Integer.valueOf(offset));
+		      
+		      
+//		      List<MemberDTO> list= memberService.searchMembers(searchType, searchValue); // 이전꺼
+		      List<MemberDTO> list= memberService.searchMembers(params);   //검색 회원 목록
 
-      int totalCount = memberService.memberCount();   // 총 회원수
-      int searchMembersCount = memberService.searchMembersCount(params); // 검색 회원 수
-      int totalPage = (int) Math.ceil((double) searchMembersCount / limit);   // 총페이지수 계산
+		      int totalCount = memberService.memberCount();   // 총 회원수
+		      int searchMembersCount = memberService.searchMembersCount(params); // 검색 회원 수
+		      int totalPage = (int) Math.ceil((double) searchMembersCount / limit);   // 총페이지수 계산
 
-      model.addAttribute("list", list);
-      model.addAttribute("totalCount", totalCount);
-      model.addAttribute("searchCount", searchMembersCount);
-      model.addAttribute("params", params);
-      model.addAttribute("currentPage", currentPage);
-      model.addAttribute("totalPage", totalPage);
+		      model.addAttribute("list", list);
+		      model.addAttribute("totalCount", totalCount);
+		      model.addAttribute("searchCount", searchMembersCount);
+		      model.addAttribute("params", params);
+		      model.addAttribute("currentPage", currentPage);
+		      model.addAttribute("totalPage", totalPage);
 
-      return "admin/members";
+		      return "admin/members";
 
+		   
+	   }else
+		   session.invalidate(); // 세션 초기화
+	   return "error/405?msg=invalidAccess";
+	  
+    
    }
 
    // 회원정보 수정 페이지 내용 삽입
    @PostMapping("/userupdate")
    public String userupdate(MemberDTO member, Model model) {
+
       memberService.userupdate(member); // 수정 처리
       model.addAttribute("user", memberService.selectone(member.getId()));
       return "member/mypage";
@@ -303,10 +336,16 @@ public class MemberController {
 
    // 관리자 회원정보 수정 페이지 내용 삽입
    @PostMapping(value = "/adminupdate")
-   public String adminupdate(@RequestParam("id") String id, Model model) {
-       MemberDTO list = memberService.selectone(id);
-        model.addAttribute("user", list);  
-        return "admin/adminupdate";  
+   public String adminupdate(@RequestParam("id") String id, Model model, HttpSession session) {
+	   String role = (String) session.getAttribute("role");
+	   if("ADMIN".equals(role)) {
+		   MemberDTO list = memberService.selectone(id);
+	        model.addAttribute("user", list);  
+	        return "admin/adminupdate";  
+	   }else
+		   session.invalidate(); // 세션 초기화
+	   return "error/405?msg=invalidAccess";
+      
    }
 
    // 회원 정보 수정
@@ -318,15 +357,27 @@ public class MemberController {
    
    // 관리자 회원 정보 수정
    @PostMapping(value = "/adminupdate_ok")
-   public String adminupdate(@ModelAttribute MemberDTO update) {
-      memberService.adminupdate(update);
-        return "redirect:/member/members";  
+   public String adminupdate(@ModelAttribute MemberDTO update, HttpSession session) {
+	   String role = (String) session.getAttribute("role");
+	   if("ADMIN".equals(role)) {
+		   memberService.adminupdate(update);
+	        return "redirect:/member/members";  
+	   }else
+		   session.invalidate(); // 세션 초기화
+	   return "error/405?msg=invalidAccess";
+      
    }
    // 관리자 삭제
    @PostMapping(value = "/deleteadmin")
-   public String deleteadmin(@RequestParam("id") String id) {
-      memberService.deleteadmin(id);
-      return "redirect:/member/members";  
+   public String deleteadmin(@RequestParam("id") String id, HttpSession session) {
+	   String role = (String) session.getAttribute("role");
+	   if("ADMIN".equals(role)) {
+		   memberService.deleteadmin(id);
+		      return "redirect:/member/members";  
+	   }else
+		   session.invalidate(); // 세션 초기화
+	   return "error/405?msg=invalidAccess";
+     
    }
    @PostMapping("/change-password")
    @ResponseBody
@@ -335,7 +386,7 @@ public class MemberController {
 
       StringBuilder json = new StringBuilder();
       json.append("{");
-
+      
       MemberDTO member = memberService.selectone(id);
       if (member == null) {
          json.append("\"success\":false,");
@@ -343,15 +394,21 @@ public class MemberController {
          json.append("}");
          return json.toString();
       }
+      
+		//암호화된 비번과 비교
+		String userPassword = currentPw; //user가 입력한 비밀번호
 
-      if (!member.getPassword().equals(currentPw)) {
+      if (!encoder.matches(userPassword, member.getPassword())) {
          json.append("\"success\":false,");
          json.append("\"message\":\"현재 비밀번호가 올바르지 않습니다.\"");
          json.append("}");
          return json.toString();
       }
 
-      member.setPassword(newPw);
+		// 비밀번호 수정전 암호화 실행 userPassword -> encodedPassword
+      String encodedPassword = encoder.encode(newPw); //새 비밀번호 암호화
+      member.setPassword(encodedPassword); //암호화 후 저장
+      
       int result = memberService.updatePassword(member);
 
       json.append("\"success\":").append(result > 0);
@@ -380,8 +437,11 @@ public class MemberController {
          json.append("}");
          return json.toString();
       }
+      
+		//암호화된 비번과 비교
+		String userPassword = password; //user가 입력한 비밀번호
 
-      if (!member.getPassword().equals(password)) {
+    if (!encoder.matches(userPassword, member.getPassword())) {
          json.append("\"success\":false,");
          json.append("\"message\":\"비밀번호가 일치하지 않습니다.\"");
          json.append("}");
@@ -416,8 +476,11 @@ public class MemberController {
            json.append("}");
            return json.toString();
        }
-
-       if (!member.getPassword().equals(password)) {
+       
+		String userPassword = password; //user가 입력한 비밀번호
+		
+		//암호화된 비번과 비교
+		if (!encoder.matches(userPassword, member.getPassword())) {
            json.append("\"success\":false,");
            json.append("\"message\":\"비밀번호가 일치하지 않습니다.\"");
            json.append("}");
@@ -438,10 +501,16 @@ public class MemberController {
    
    // 관리자 회원상세조회 체이지
    @GetMapping("/detail")
-   public String detail(@RequestParam("id") String id, Model model) {
-      MemberDTO user = memberService.selectone(id);
-      model.addAttribute("user", user);
-      return "admin/detail";
+   public String detail(@RequestParam("id") String id, Model model, HttpSession session) {
+	   String role = (String) session.getAttribute("role");
+	   if("ADMIN".equals(role)) {
+		   MemberDTO user = memberService.selectone(id);
+		      model.addAttribute("user", user);
+		      return "admin/detail";
+	   }else
+		   session.invalidate(); // 세션 초기화
+	   return "error/405?msg=invalidAccess";
+     
       
    }
    
@@ -503,4 +572,7 @@ public class MemberController {
 
 		}
 	}
+	
+
+	
 }

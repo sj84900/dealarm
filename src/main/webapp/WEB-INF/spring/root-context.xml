@@ -19,8 +19,8 @@
 		<property name="driverClassName"
 			value="com.mysql.cj.jdbc.Driver" />
 		<property name="url"
-			value="jdbc:mysql://mbc-sw.iptime.org:4200/dealarm?useSSL=false&amp;connectTimeout=5000" />
-		<property name="username" value="dealarm" />
+			value="jdbc:mysql://dealarm-rds.cjewccuwigd8.ap-northeast-2.rds.amazonaws.com:3306/dealarm?useSSL=false&amp;connectTimeout=5000&amp;allowPublicKeyRetrieval=true" />
+		<property name="username" value="admin" />
 		<property name="password" value="181818!*!*!*" />
 	</bean>
 
@@ -65,13 +65,13 @@
 	<!-- RestTemplate (서비스 계층에서 사용 가능) -->
 	<bean id="restTemplate"
 		class="org.springframework.web.client.RestTemplate" />
-
 	<!-- 패키지 안의 인터페이스들을 MyBatis Mapper 로 자동 등록 -->
+	<!--
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage"
-			value="kr.co.dong.sms.dao, kr.co.dong.deal" />
+			value="kr.co.dong.deal" />
 	</bean>
-
+	-->
 	<!-- 스케줄러 설정 -->
 	<task:annotation-driven scheduler="myScheduler" />
 	<task:scheduler id="myScheduler" pool-size="5" />

@@ -12,13 +12,13 @@
     <meta name="author" content="" />
     <title>Top 네비</title>
 	<link href="${pageContext.request.contextPath}/resources/css/styles.css" rel="stylesheet" />
-	<link rel="icon" type="image/jpeg" href="${pageContext.request.contextPath}/resources/images/icon.jpg" />
 </head>
 <body style="margin:0; padding:0; display: flex; flex-direction: column; height: 100vh;">
     
     
  <!-- TopNavigation-->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light"
+        			style="position: relative; z-index:9999;">
             <div class="container px-4 px-lg-5">
                 <a class="navbar-brand" href="${pageContext.request.contextPath}/">Home</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -28,6 +28,7 @@
                 	<!--  왼쪽메뉴 -->
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="${pageContext.request.contextPath}/main">Main</a></li>
+ <!-- 
                         <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
@@ -38,6 +39,7 @@
                                 <li><a class="dropdown-item" href="#!">New Arrivals</a></li>
                             </ul>
                         </li>
+ -->                    
                     </ul>
                     <!-- 오른쪽 메뉴 -->
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -64,9 +66,22 @@
 		                 		<li class="nav-item d-flex align-items-center">
 		                 			<span class="navbar-text me-2"><b>${sessionScope.id}</b>&nbsp;관리자 계정으로 로그인하였습니다</span>
 		                 		</li>
-		                 		<li class="nav-item d-flex align-items-center">
-               						 <a class="nav-link" href="<c:url value='/member/members'/>">회원관리</a>
-		                 		</li>
+		                 	
+		                 		<li class="nav-item dropdown">
+		                            <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">관리자메뉴</a>
+		                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+		                                <li><a class="dropdown-item" href="<c:url value='/member/members'/>">회원관리</a></li>
+		                                <li><a class="dropdown-item" href="<c:url value='/stats'/>">통계</a></li>
+<!--  	                                <li><a class="dropdown-item" href="#!">New Arrivals</a></li>   -->
+		                              
+		                                <li><hr class="dropdown-divider" /></li>
+		                            </ul>
+		                        </li>
+		                 		
+		                 		
+		                 		
+		                 		
+
 		                 		<li class="nav-item d-flex align-items-center">
 					                <a class="nav-link" href="<c:url value='/member/mypage'/>">마이페이지</a>
 					            </li>
@@ -89,7 +104,7 @@
 		                 	</c:otherwise>
 					    </c:choose>
 		                 
-		                 
+						<!-- 
 						<li class="nav-item d-flex align-items-center">
 				            <form class="d-flex align-items-center mb-0">
 		                        <button class="btn btn-outline-dark" type="submit">
@@ -98,7 +113,8 @@
 		                            <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
 		                        </button>
 		                    </form>
-		                </li> 
+		                </li>
+		                 --> 
 		                
 		                  
 	                </ul>   
