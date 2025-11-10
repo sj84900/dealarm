@@ -78,7 +78,8 @@ http://dealarm.ddns.net/
 ### 📩 알림 (SMS)
 - **Solapi SMS API**를 통해 매칭된 딜을 사용자에게 문자로 전송  
 - `.env` 파일 내에 **API KEY / SECRET KEY** 설정 필요  
-- 수신 동의한 사용자만 알림 수신 가능  
+- 수신 동의한 사용자만 알림 수신 가능
+- 전송된 알림은 메인 페이지에 기록
 ![SMS 알림 화면](./docs/images/alert.png)
 
 ### 👆 클릭 추적
@@ -103,8 +104,8 @@ http://dealarm.ddns.net/
 
 ## ▶️ Run (Local)
 
-1. **Java & Maven 설치** (또는 Gradle)  
-2. **MySQL 준비**: 스키마 생성 및 `application.properties` / `.env` 에 DB 접속정보 설정  
+1. **Java & Maven 설치** 
+2. **MySQL 준비**: 스키마 생성 및 / `.env` 에 DB 접속정보 설정  
 3. (선택) **Python venv 설치** 후 크롤러/ SMS 모듈 의존성 설치  
 4. `mvn clean package` 로 WAR 생성  
 5. **Tomcat** `webapps/` 에 WAR 배치 → 서버 시작  
